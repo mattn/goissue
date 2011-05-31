@@ -1,0 +1,12 @@
+goissue: issue tool for googlecode.com written in go.
+
+Install:
+	# gomake
+
+Setup:
+	Modify settings.json from copy of settings.json.example .
+	You can specify "project".
+
+Author:
+	Yasuhiro Matsumoto <mattn.jp@gmail.com>
+
