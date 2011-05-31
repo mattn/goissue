@@ -190,7 +190,7 @@ func showIssue(auth string, id string) {
 	if err != nil {
 		log.Fatal("failed to parse xml:", err)
 	}
-	println(entry.Title, "\n", text)
+	fmt.Println(entry.Title, "\n", text)
 }
 
 // searchIssues search word in issue list.
@@ -214,7 +214,7 @@ func searchIssues(auth, word string) {
 		log.Fatal("failed to parse xml:", err)
 	}
 	for _, entry := range feed.Entry {
-		println(entry.Id + ": " + entry.Title)
+		fmt.Println(entry.Id + ": " + entry.Title)
 	}
 }
 
@@ -239,7 +239,7 @@ func showIssues(auth string) {
 		log.Fatal("failed to parse xml:", err)
 	}
 	for _, entry := range feed.Entry {
-		println(entry.Id + ": " + entry.Title)
+		fmt.Println(entry.Id + ": " + entry.Title)
 	}
 }
 
@@ -272,7 +272,7 @@ func showComments(auth string, id string) {
 		if err != nil {
 			log.Fatal("failed to parse xml:", err)
 		}
-		println(entry.Title, "\n", text)
+		fmt.Println(entry.Title, "\n", text)
 	}
 }
 
@@ -394,7 +394,7 @@ func createIssue(auth string) {
 		log.Fatal("failed to get issue:", err)
 	}
 	defer res.Body.Close()
-	println(res.Status)
+	fmt.Println(res.Status)
 }
 
 func main() {
