@@ -7,6 +7,27 @@ Setup:
 	Modify settings.json from copy of settings.json.example .
 	You can specify "project".
 
+Usage:
+	* listing issues
+
+	  # goissue
+
+	* show issue detail
+
+	  # goissue 123
+
+	* show issue comments
+
+	  # goissue -c 123
+
+	* create issue
+
+	  # goissue -C
+
+	* search issues
+
+	  # goissue -s windows
+
 Author:
 	Yasuhiro Matsumoto <mattn.jp@gmail.com>
 
