@@ -75,13 +75,13 @@ type Feed struct {
 func authLogin(config map[string]string) (auth string) {
 	res, err := http.PostForm(
 		"https://www.google.com/accounts/ClientLogin",
-		map[string]string{
-			"accountType": "GOOGLE",
-			"Email":       config["email"],
-			"Passwd":      config["password"],
-			"service":     "code",
-			"source":      "golang-goissue-" + version,
-		})
+		http.Values(map[string][]string{
+			"accountType": []string{ "GOOGLE" },
+			"Email":       []string{ config["email"] },
+			"Passwd":      []string{ config["password"] },
+			"service":     []string{ "code" },
+			"source":      []string{ "golang-goissue-" + version },
+		}))
 	if err != nil {
 		log.Fatal("failed to authenticate:", err)
 	}
