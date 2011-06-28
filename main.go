@@ -32,15 +32,15 @@ var xmlSpecial = map[byte]string{
 }
 
 type Link struct {
-	Href     string
-	Rel      string
-	Type     string
-	HrefLang string
+	Href     string "attr"
+	Rel      string "attr"
+	Type     string "attr"
+	HrefLang string "attr"
 }
 type Author struct {
-	Name  string
-	Uri   string
-	Email string
+	Name  string "name"
+	Uri   string "uri"
+	Email string "email"
 }
 type IssuesCc struct {
 	IssuesUri      string "issues:uri"
@@ -51,23 +51,25 @@ type IssuesOwner struct {
 	IssuesUsername string "issues:username"
 }
 type Entry struct {
-	Id           string
-	Published    string
-	Updated      string
-	Title        string
-	Content      string
-	Link         []Link
-	Author       []Author
-	IssuesCc     []IssuesCc    "issues:cc"
-	IssuesLabel  []string      "issues:label"
-	IssuesOwner  []IssuesOwner "issues:owner"
-	IssuesStars  []int         "issues:stars"
-	IssuesState  []string      "issues:state"
-	IssuesStatus []string      "issues:status"
+	XMLNs         string        "attr"
+	Id            string        "id"
+	Published     string        "published"
+	Updated       string        "updated"
+	Title         string        "title"
+	Content       string        "content"
+	Link          []Link        "link"
+	Author        []Author      "author"
+	IssuesCc      []IssuesCc    "issues:cc"
+	IssuesLabel   []string      "issues:label"
+	IssuesOwner   []IssuesOwner "issues:owner"
+	IssuesStars   []int         "issues:stars"
+	IssuesState   []string      "issues:state"
+	IssuesStatus  []string      "issues:status"
+	IssuesSummary string        "issues:summary"
 }
 
 type Feed struct {
-	Entry []Entry
+	Entry []Entry "entry"
 }
 
 // authLogin return auth code from AuthSub server.
@@ -76,11 +78,11 @@ func authLogin(config map[string]string) (auth string) {
 	res, err := http.PostForm(
 		"https://www.google.com/accounts/ClientLogin",
 		http.Values(map[string][]string{
-			"accountType": []string{ "GOOGLE" },
-			"Email":       []string{ config["email"] },
-			"Passwd":      []string{ config["password"] },
-			"service":     []string{ "code" },
-			"source":      []string{ "golang-goissue-" + version },
+			"accountType": []string{"GOOGLE"},
+			"Email":       []string{config["email"]},
+			"Passwd":      []string{config["password"]},
+			"service":     []string{"code"},
+			"source":      []string{"golang-goissue-" + version},
 		}))
 	if err != nil {
 		log.Fatal("failed to authenticate:", err)
@@ -386,7 +388,7 @@ Please provide any additional information below.
 	if len(from) < 7 || from[:6] != "from: " {
 		log.Fatal("failed to create issue")
 	}
-	from = from[7:]
+	from = from[6:]
 	title := lines[1]
 	if len(title) < 8 || title[:7] != "title: " {
 		log.Fatal("failed to create issue")
@@ -394,6 +396,17 @@ Please provide any additional information below.
 	title = title[7:]
 	body := strings.Join(lines[3:], "\n")
 
+	/*
+	entry := Entry{XMLNs: "http://www.w3.org/2005/Atom", Title: title, Content: body, Author: []Author{Author{Name: from}}, IssuesSummary: title}
+	buf := bytes.NewBuffer(nil)
+	err = xml.Marshal(buf, entry)
+	if err != nil {
+		log.Fatal("failed to post issue:", err)
+	}
+	str := "<?xml version='1.0' encoding='UTF-8'?>\n" + buf.String()
+	str = strings.Replace(str, "<???", "<entry", 1)
+	str = strings.Replace(str, "</???>", "</entry>", -1)
+	*/
 	str := fmt.Sprintf("<?xml version='1.0' encoding='UTF-8'?>\n"+
 		"<entry xmlns='http://www.w3.org/2005/Atom' xmlns:issues='http://schemas.google.com/projecthosting/issues/2009'>\n"+
 		"<title>%s</title>\n"+
@@ -412,7 +425,7 @@ Please provide any additional information below.
 		xmlEscape(title))
 	req, err := http.NewRequest("POST", "https://code.google.com/feeds/issues/p/"+project+"/issues/full", strings.NewReader(str))
 	if err != nil {
-		log.Fatal("failed to get issue:", err)
+		log.Fatal("failed to post issue:", err)
 	}
 	req.Header.Set("Authorization", "GoogleLogin "+auth)
 	req.Header.Set("Content-Type", "application/atom+xml")
