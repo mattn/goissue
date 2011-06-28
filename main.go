@@ -90,7 +90,7 @@ func authLogin(config map[string]string) (auth string) {
 	if res.StatusCode != 200 {
 		log.Fatal("failed to authenticate:", res.Status)
 	}
-	lines := strings.Split(string(b), "\n", -1)
+	lines := strings.Split(string(b), "\n")
 	return lines[2]
 }
 
@@ -332,7 +332,35 @@ func createIssue(auth string) {
 			editor = "vim"
 		}
 	}
-	contents := "from: \ntitle: \n--------------\n"
+	contents := `from: 
+title: 
+--------------
+Before filing a bug, please check whether it has been fixed since
+the latest release: run "hg pull -u" and retry what you did to
+reproduce the problem.  Thanks.
+
+What steps will reproduce the problem?
+1.
+2.
+3.
+
+What is the expected output?
+
+
+What do you see instead?
+
+
+Which compiler are you using (5g, 6g, 8g, gccgo)?
+
+
+Which operating system are you using?
+
+
+Which revision are you using?  (hg identify)
+
+
+Please provide any additional information below.
+`
 	if syscall.OS == "windows" {
 		contents = strings.Replace(contents, "\n", "\r\n", -1)
 	}
@@ -350,7 +378,7 @@ func createIssue(auth string) {
 	if syscall.OS == "windows" {
 		text = strings.Replace(text, "\r\n", "\n", -1)
 	}
-	lines := strings.Split(text, "\n", -1)
+	lines := strings.Split(text, "\n")
 	if len(lines) < 4 {
 		log.Fatal("failed to create issue")
 	}
