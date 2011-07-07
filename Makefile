@@ -6,6 +6,6 @@ include $(GOROOT)/src/Make.inc
 
 TARG=goissue
 GOFILES=\
-	main.go\
+	goissue.go\
 
 include $(GOROOT)/src/Make.cmd
