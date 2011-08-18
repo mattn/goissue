@@ -16,6 +16,7 @@ import (
 	"rand"
 	"strings"
 	"syscall"
+	"url"
 	"xml"
 )
 
@@ -77,7 +78,7 @@ type Feed struct {
 func authLogin(config map[string]string) (auth string) {
 	res, err := http.PostForm(
 		"https://www.google.com/accounts/ClientLogin",
-		http.Values(map[string][]string{
+		url.Values(map[string][]string{
 			"accountType": []string{"GOOGLE"},
 			"Email":       []string{config["email"]},
 			"Passwd":      []string{config["password"]},
@@ -197,7 +198,7 @@ func showIssue(auth string, id string) {
 
 // searchIssues search word in issue list.
 func searchIssues(auth, word string) {
-	req, err := http.NewRequest("GET", "https://code.google.com/feeds/issues/p/"+project+"/issues/full?q="+http.URLEscape(word), nil)
+	req, err := http.NewRequest("GET", "https://code.google.com/feeds/issues/p/"+project+"/issues/full?q="+url.QueryEscape(word), nil)
 	if err != nil {
 		log.Fatal("failed to get issues:", err)
 	}
