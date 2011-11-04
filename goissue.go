@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"exec"
 	"flag"
 	"fmt"
@@ -127,22 +128,22 @@ func getConfig() (config map[string]string) {
 	return config
 }
 
-func dumpLevel(w io.Writer, n *html.Node, level int) os.Error {
+func dumpLevel(w io.Writer, n *html.Node, level int) error {
 	for i := 0; i < level; i++ {
 		io.WriteString(w, "  ")
 	}
 	switch n.Type {
 	case html.ErrorNode:
-		return os.NewError("unexpected ErrorNode")
+		return errors.New("unexpected ErrorNode")
 	case html.DocumentNode:
-		return os.NewError("unexpected DocumentNode")
+		return errors.New("unexpected DocumentNode")
 	case html.ElementNode:
 	case html.TextNode:
 		fmt.Fprintf(w, n.Data)
 	case html.CommentNode:
-		return os.NewError("COMMENT")
+		return errors.New("COMMENT")
 	default:
-		return os.NewError("unknown node type")
+		return errors.New("unknown node type")
 	}
 	for _, c := range n.Child {
 		if err := dumpLevel(w, c, level+1); err != nil {
@@ -152,7 +153,7 @@ func dumpLevel(w io.Writer, n *html.Node, level int) os.Error {
 	return nil
 }
 
-func dump(n *html.Node) (string, os.Error) {
+func dump(n *html.Node) (string, error) {
 	if n == nil || len(n.Child) == 0 {
 		return "", nil
 	}
@@ -279,7 +280,7 @@ func showComments(auth string, id string) {
 	}
 }
 
-func run(argv []string) os.Error {
+func run(argv []string) error {
 	cmd, err := exec.LookPath(argv[0])
 	if err != nil {
 		return err
@@ -300,7 +301,7 @@ func run(argv []string) os.Error {
 		return err
 	}
 	if !w.Exited() || w.ExitStatus() != 0 {
-		return os.NewError("failed to execute text editor")
+		return errors.New("failed to execute text editor")
 	}
 	return nil
 }
@@ -398,15 +399,15 @@ Please provide any additional information below.
 	body := strings.Join(lines[3:], "\n")
 
 	/*
-	entry := Entry{XMLNs: "http://www.w3.org/2005/Atom", Title: title, Content: body, Author: []Author{Author{Name: from}}, IssuesSummary: title}
-	buf := bytes.NewBuffer(nil)
-	err = xml.Marshal(buf, entry)
-	if err != nil {
-		log.Fatal("failed to post issue:", err)
-	}
-	str := "<?xml version='1.0' encoding='UTF-8'?>\n" + buf.String()
-	str = strings.Replace(str, "<???", "<entry", 1)
-	str = strings.Replace(str, "</???>", "</entry>", -1)
+		entry := Entry{XMLNs: "http://www.w3.org/2005/Atom", Title: title, Content: body, Author: []Author{Author{Name: from}}, IssuesSummary: title}
+		buf := bytes.NewBuffer(nil)
+		err = xml.Marshal(buf, entry)
+		if err != nil {
+			log.Fatal("failed to post issue:", err)
+		}
+		str := "<?xml version='1.0' encoding='UTF-8'?>\n" + buf.String()
+		str = strings.Replace(str, "<???", "<entry", 1)
+		str = strings.Replace(str, "</???>", "</entry>", -1)
 	*/
 	str := fmt.Sprintf("<?xml version='1.0' encoding='UTF-8'?>\n"+
 		"<entry xmlns='http://www.w3.org/2005/Atom' xmlns:issues='http://schemas.google.com/projecthosting/issues/2009'>\n"+
