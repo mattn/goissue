@@ -181,12 +181,8 @@ func showIssue(auth string, id string) {
 	if res.StatusCode != 200 {
 		log.Fatal("failed to authenticate:", res.Status)
 	}
-	b, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		log.Fatal("failed to get issue:", err)
-	}
 	var entry Entry
-	err = xml.Unmarshal(b, &entry)
+	err = xml.NewDecoder(res.Body).Decode(&entry)
 	if err != nil {
 		log.Fatal("failed to get issue:", err)
 	}
@@ -216,12 +212,8 @@ func searchIssues(auth, word string) {
 	if res.StatusCode != 200 {
 		log.Fatal("failed to get issues:", res.Status)
 	}
-	b, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		log.Fatal("failed to parse xml:", err)
-	}
 	var feed Feed
-	err = xml.Unmarshal(b, &feed)
+	err = xml.NewDecoder(res.Body).Decode(&feed)
 	if err != nil {
 		log.Fatal("failed to parse xml:", err)
 	}
@@ -245,12 +237,8 @@ func showIssues(auth string) {
 	if res.StatusCode != 200 {
 		log.Fatal("failed to get issues:", res.Status)
 	}
-	b, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		log.Fatal("failed to get issue:", err)
-	}
 	var feed Feed
-	err = xml.Unmarshal(b, &feed)
+	err = xml.NewDecoder(res.Body).Decode(&feed)
 	if err != nil {
 		log.Fatal("failed to parse xml:", err)
 	}
@@ -274,12 +262,8 @@ func showComments(auth string, id string) {
 	if res.StatusCode != 200 {
 		log.Fatal("failed to authenticate:", res.Status)
 	}
-	b, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		log.Fatal("failed to parse xml:", err)
-	}
 	var feed Feed
-	err = xml.Unmarshal(b, &feed)
+	err = xml.NewDecoder(res.Body).Decode(&feed)
 	if err != nil {
 		log.Fatal("failed to get comments:", err)
 	}
