@@ -7,7 +7,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"html"
+	"exp/html"
 	"io"
 	"io/ioutil"
 	"log"
@@ -18,7 +18,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"syscall"
+	"runtime"
 )
 
 const version = "0.01"
@@ -34,44 +34,44 @@ var xmlSpecial = map[byte]string{
 }
 
 type Link struct {
-	Href     string "attr"
-	Rel      string "attr"
-	Type     string "attr"
-	HrefLang string "attr"
+	Href     string `xml:"href,attr"`
+	Rel      string `xml:"rel,attr"`
+	Type     string `xml:"type,attr"`
+	HrefLang string `xml:"hreflang,attr"`
 }
 type Author struct {
-	Name  string "name"
-	Uri   string "uri"
-	Email string "email"
+	Name  string `xml:"name"`
+	Uri   string `xml:"uri"`
+	Email string `xml:"email"`
 }
 type IssuesCc struct {
-	IssuesUri      string "issues:uri"
-	IssuesUsername string "issues:username"
+	IssuesUri      string `xml:"issues:uri"`
+	IssuesUsername string `xml:"issues:username"`
 }
 type IssuesOwner struct {
-	IssuesUri      string "issues:uri"
-	IssuesUsername string "issues:username"
+	IssuesUri      string `xml:"issues:uri"`
+	IssuesUsername string `xml:"issues:username"`
 }
 type Entry struct {
-	XMLNs         string        "attr"
-	Id            string        "id"
-	Published     string        "published"
-	Updated       string        "updated"
-	Title         string        "title"
-	Content       string        "content"
-	Link          []Link        "link"
-	Author        []Author      "author"
-	IssuesCc      []IssuesCc    "issues:cc"
-	IssuesLabel   []string      "issues:label"
-	IssuesOwner   []IssuesOwner "issues:owner"
-	IssuesStars   []int         "issues:stars"
-	IssuesState   []string      "issues:state"
-	IssuesStatus  []string      "issues:status"
-	IssuesSummary string        "issues:summary"
+	XMLNs         string        `xml:"attr"`
+	Id            string        `xml:"id"`
+	Published     string        `xml:"published"`
+	Updated       string        `xml:"updated"`
+	Title         string        `xml:"title"`
+	Content       string        `xml:"content"`
+	Link          []Link        `xml:"link"`
+	Author        []Author      `xml:"author"`
+	IssuesCc      []IssuesCc    `xml:"issues:cc"`
+	IssuesLabel   []string      `xml:"issues:label"`
+	IssuesOwner   []IssuesOwner `xml:"issues:owner"`
+	IssuesStars   []int         `xml:"issues:stars"`
+	IssuesState   []string      `xml:"issues:state"`
+	IssuesStatus  []string      `xml:"issues:status"`
+	IssuesSummary string        `xml:"issues:summary"`
 }
 
 type Feed struct {
-	Entry []Entry "entry"
+	Entry []Entry `xml:"entry"`
 }
 
 // authLogin return auth code from AuthSub server.
@@ -101,7 +101,7 @@ func authLogin(config map[string]string) (auth string) {
 // getConfig return string map of configuration that store email and password.
 func getConfig() (config map[string]string) {
 	file := ""
-	if syscall.OS == "windows" {
+	if runtime.GOOS == "windows" {
 		file = filepath.Join(os.Getenv("USERPROFILE"), "Application Data", "goissue", "settings.json")
 	} else {
 		file = filepath.Join(os.Getenv("HOME"), ".config", "goissue", "settings.json")
@@ -181,8 +181,12 @@ func showIssue(auth string, id string) {
 	if res.StatusCode != 200 {
 		log.Fatal("failed to authenticate:", res.Status)
 	}
+	b, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		log.Fatal("failed to get issue:", err)
+	}
 	var entry Entry
-	err = xml.Unmarshal(res.Body, &entry)
+	err = xml.Unmarshal(b, &entry)
 	if err != nil {
 		log.Fatal("failed to get issue:", err)
 	}
@@ -212,8 +216,12 @@ func searchIssues(auth, word string) {
 	if res.StatusCode != 200 {
 		log.Fatal("failed to get issues:", res.Status)
 	}
+	b, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		log.Fatal("failed to parse xml:", err)
+	}
 	var feed Feed
-	err = xml.Unmarshal(res.Body, &feed)
+	err = xml.Unmarshal(b, &feed)
 	if err != nil {
 		log.Fatal("failed to parse xml:", err)
 	}
@@ -237,8 +245,12 @@ func showIssues(auth string) {
 	if res.StatusCode != 200 {
 		log.Fatal("failed to get issues:", res.Status)
 	}
+	b, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		log.Fatal("failed to get issue:", err)
+	}
 	var feed Feed
-	err = xml.Unmarshal(res.Body, &feed)
+	err = xml.Unmarshal(b, &feed)
 	if err != nil {
 		log.Fatal("failed to parse xml:", err)
 	}
@@ -262,8 +274,12 @@ func showComments(auth string, id string) {
 	if res.StatusCode != 200 {
 		log.Fatal("failed to authenticate:", res.Status)
 	}
+	b, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		log.Fatal("failed to parse xml:", err)
+	}
 	var feed Feed
-	err = xml.Unmarshal(res.Body, &feed)
+	err = xml.Unmarshal(b, &feed)
 	if err != nil {
 		log.Fatal("failed to get comments:", err)
 	}
@@ -286,7 +302,7 @@ func run(argv []string) error {
 		return err
 	}
 	var stdin *os.File
-	if syscall.OS == "windows" {
+	if runtime.GOOS == "windows" {
 		stdin, _ = os.Open("CONIN$")
 	} else {
 		stdin = os.Stdin
@@ -322,7 +338,7 @@ func xmlEscape(s string) string {
 func createIssue(auth string) {
 	file := ""
 	newf := fmt.Sprintf("%d.txt", rand.Int())
-	if syscall.OS == "windows" {
+	if runtime.GOOS == "windows" {
 		file = filepath.Join(os.Getenv("USERPROFILE"), "Application Data", "goissue", newf)
 	} else {
 		file = filepath.Join(os.Getenv("HOME"), ".config", "goissue", newf)
@@ -330,7 +346,7 @@ func createIssue(auth string) {
 	defer os.Remove(file)
 	editor := os.Getenv("EDITOR")
 	if len(editor) == 0 {
-		if syscall.OS == "windows" {
+		if runtime.GOOS == "windows" {
 			editor = "notepad"
 		} else {
 			editor = "vim"
@@ -365,7 +381,7 @@ Which revision are you using?  (hg identify)
 
 Please provide any additional information below.
 `
-	if syscall.OS == "windows" {
+	if runtime.GOOS == "windows" {
 		contents = strings.Replace(contents, "\n", "\r\n", -1)
 	}
 	ioutil.WriteFile(file, []byte(contents), 0600)
@@ -379,7 +395,7 @@ Please provide any additional information below.
 		log.Fatal("failed to create issue:", err)
 	}
 	text := string(b)
-	if syscall.OS == "windows" {
+	if runtime.GOOS == "windows" {
 		text = strings.Replace(text, "\r\n", "\n", -1)
 	}
 	lines := strings.Split(text, "\n")
