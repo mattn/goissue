@@ -296,11 +296,11 @@ func run(argv []string) error {
 		return err
 	}
 	defer p.Release()
-	w, err := p.Wait(0)
+	w, err := p.Wait()
 	if err != nil {
 		return err
 	}
-	if !w.Exited() || w.ExitStatus() != 0 {
+	if !w.Exited() || !w.Success() {
 		return errors.New("failed to execute text editor")
 	}
 	return nil
